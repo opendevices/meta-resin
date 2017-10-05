@@ -9,7 +9,7 @@ Before=dnsmasq.service
 [Service]
 Type=notify
 Restart=always
-ExecStart=/usr/bin/dockerd --log-driver=journald -s @DOCKER_STORAGE@ -H fd:// --dns 10.114.101.1 --bip 10.114.101.1/24 --fixed-cidr=10.114.101.0/25
+ExecStart=/usr/bin/healthdog --healthcheck=/usr/bin/check-docker /usr/bin/dockerd --log-driver=journald -s @DOCKER_STORAGE@ -H fd:// --dns 10.114.101.1 --bip 10.114.101.1/24 --fixed-cidr=10.114.101.0/25
 ExecStartPost=/sbin/sysctl -w net.ipv4.conf.docker0.route_localnet=1
 ExecStartPost=/usr/sbin/iptables -t nat -I DOCKER -p udp --dport 53 -j DNAT --dst 10.114.101.1/32 --to 127.0.0.2:53
 ExecStartPost=/usr/sbin/iptables -t nat -I DOCKER -p tcp --dport 53 -j DNAT --dst 10.114.101.1/32 --to 127.0.0.2:53
@@ -19,6 +19,8 @@ MountFlags=slave
 LimitNOFILE=1048576
 LimitNPROC=1048576
 LimitCORE=infinity
+WatchdogSec=60
+Restart=always
 
 [Install]
 WantedBy=multi-user.target

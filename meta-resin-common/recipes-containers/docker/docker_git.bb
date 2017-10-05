@@ -25,6 +25,7 @@ SRCREV = "7d07e4f76d6f2678c0c4020bed4ac9ab5f5ce91f"
 SRCBRANCH = "17.06-resin"
 SRC_URI = "\
   git://github.com/resin-os/docker.git;branch=${SRCBRANCH};nobranch=1 \
+  file://check-docker \
   file://docker.service \
   file://docker-host.service \
   file://var-lib-docker.mount \
@@ -43,7 +44,7 @@ DOCKER_VERSION = "17.06.0-dev"
 PV = "${DOCKER_VERSION}+git${SRCREV}"
 
 DEPENDS_append_class-target = " systemd"
-RDEPENDS_${PN}_class-target = "curl util-linux iptables tini systemd"
+RDEPENDS_${PN}_class-target = "curl util-linux iptables tini systemd healthdog"
 RRECOMMENDS_${PN} += " kernel-module-nf-nat"
 DOCKER_PKG="github.com/docker/docker"
 
@@ -143,6 +144,8 @@ do_install() {
   sed -i "s/@DOCKER_STORAGE@/${DOCKER_STORAGE}/g" ${D}${systemd_unitdir}/system/docker-host.service
 
   install -m 0644 ${WORKDIR}/var-lib-docker.mount ${D}/${systemd_unitdir}/system
+
+  install -m 0755 ${WORKDIR}/check-docker ${D}/${bindir}/check-docker
 
   if ${@bb.utils.contains('DISTRO_FEATURES','development-image','true','false',d)}; then
     install -d ${D}${sysconfdir}/systemd/system/docker.service.d
